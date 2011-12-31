@@ -1,0 +1,25 @@
+.. figure:: http://arnet.no-ip.org/blog/testing.png
+   :align: right
+
+Description
+===========
+
+This application will allow you to process the information distributed in a feed (atom / rss / any)
+
+Key Features:
+    * specify the command to which the result will be routed
+    * edit content using regular expressions
+    * modify the content using embedded python
+    * filter entries using embedded python / regular expressions
+
+Documentation
+=============
+
+You can find all the project documentation in the wiki
+http://wiki.github.com/pointtonull/waxel/.
+
+Colaborate
+==========
+
+You are free to clone this project from http://github.com/pointtonull/waxel.git
+or to report issues/whises on http://github.com/pointtonull/waxel/issues 
