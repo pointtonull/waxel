@@ -21,931 +21,285 @@ def get_options():
     optparser = OptionParser(usage="
     %prog [-vqdsc]", version="%prog .2")
 
-"Inicio:"
-
-optparser.add_option( "-V", "--version", help=("muestra la versión de Wget "
-    "y sale."), action="store", dest=" version ")
-optparser.add_option("-h" , "--help", help=("muestra esta ayuda."),
-    action="store", dest="help")
-optparser.add_option("-b", "--background", help=("irse a segundo plano"
-    "después de empezar."), action="store", dest="background")
-optparser.add_option("-e", "--execute=COMMAND", help=("ejecuta una orden"
-    "estilo `.wgetrc'."), action="store", dest="execute")
-
-"Ficheros de registro y de entrada:"
-optparser.add_option("-o", "--output-file=FICHERO", help=("registrar mensajes"
-    "en FICHERO."), action="store", dest="output-file")
-optparser.add_option("-a", "--append-output=FILE", help=("anexar mensajes a"
-    " FILE."), action="store", dest="append-output")
-optparser.add_option("-d", "--debug", help=("saca montones de información "
-    "para depuración."), action="store", dest="debug")
-optparser.add_option("-q", "--quiet", help=("silencioso (sin texto de salida)"
-    "."), action="store", dest="quiet")
-optparser.add_option("-v", "--verbose", help=("sé verboso (es el método por "
-    "defecto)."), action="store", dest="verbose")
-optparser.add_option("-nv", "--no-verbose", help=("desactiva modo verboso, "
-    "sin ser silencioso."), action="store", dest="no-verbose")
-
-optparser.add_option(
-"-i"
-,
-"--input-file=FILE"
-, help=(
-"descarga URLs encontradas en fichero (FILE) local o externo."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-F"
-,
-"--force-html"
-, help=(
-"trata el fichero de entrada como HTML."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-B"
-,
-"--base=URL"
-, help=(
-"resuelve enlaces HTML del fichero-de-entrada (-i -F) relativos a la URL."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--config=FILE"
-, help=(
-"Specify config file to use."
-), action="store", dest="
-")
-
-"Descarga:"
-
-optparser.add_option(
-"-t"
-,
-"--tries=NÚMERO"
-, help=(
-"define número de intentos a NÚMERO (0 es sin limite)."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--retry-connrefused"
-, help=(
-"reintente incluso si la conexión es rechazada."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-O"
-,
-"--output-document=FILE"
-, help=(
-"escriba documentos al fichero FILE."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-nc"
-,
-"--no-clobber"
-, help=(
-"skip downloads that would download to existing files (overwriting them)."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-c"
-,
-"--continue"
-, help=(
-"continuar una descarga parcial de un fichero."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--progress=TYPE"
-, help=(
-"seleccione tipo de indicador de progreso."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-N"
-,
-"--timestamping"
-, help=(
-"no re-recuperar ficheros a menos que sean más nuevos que la versión local."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--no-use-server-timestamps"
-, help=(
-"no poner la hora/fecha del fichero local a la que tenga el del servidor."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-S"
-,
-"--server-response"
-, help=(
-"mostrar la respuesta del servidor."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--spider"
-, help=(
-"(araña) no descargar nada."
-), action="store", dest="
-")
-optparser.add_option(
-"-T"
-,
-"--timeout=SEGUNDOS"
-, help=(
-"poner todos los valores de temporización a SEGUNDOS."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--dns-timeout=SEGS"
-, help=(
-"definir la temporización de la búsqueda DNS a SEGS."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--connect-timeout=SEGS"
-, help=(
-"definir la temporización de conexión a SEGS."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--read-timeout=SEGS"
-, help=(
-"definir la temporización de lectura a SEGS."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-w"
-,
-"--wait=SEGUNDOS"
-, help=(
-"espera tantos SEGUNDOS entre reintentos."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--waitretry=SEGUNDOS"
-, help=(
-"espera 1..SEGUNDOS entre reintentos de una descarga."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--random-wait"
-, help=(
-"espera entre 0.5*WAIT...1.5*WAIT segs. entre descargas."
-), action="store", dest="
-")
-
-optparser.add_option(
-"",
-"--no-proxy"
-, help=(
-"explícitamente desconecta el proxy."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-Q"
-,
-"--quota=NÚMERO"
-, help=(
-"define la cuota de descarga a NÚMERO."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--bind-address=DIRECCIÓN"
-, help=(
-"bind a DIRECCIÓN (nombredeequipo o IP) en equipo local."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--limit-rate=VELOCIDAD"
-, help=(
-"limita velocidad de descarga a VELOCIDAD."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--no-dns-cache"
-, help=(
-"desactiva búsquedas en tampón DNS."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--restrict-file-names=OS"
-, help=(
-"restringe caracteres en nombres de ficheros a los que el SO permita."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--ignore-case"
-, help=(
-"ignorar mayús/minúsculas al encajar ficheros/directorios."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-4"
-,
-"--inet4-only"
-, help=(
-"conectar sólo a direcciones IPv4."
-), action="store", dest="
-")
-
-optparser.add_option(
-"-6"
-,
-"--inet6-only"
-, help=(
-"conectar sólo a direcciones IPv6."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--prefer-family=FAMILY"
-, help=(
-"conectar primero a direcciones de la familia especificada, bien IPv6, IPv4, o ninguna."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--user=USUARIO"
-, help=(
-"poner el usuario de ambos ftp y http a USUARIO."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--password=CONTRASEÑA"
-, help=(
-"poner la contraseña de ambos ftp y http a CONTRASEÑA."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--ask-password"
-, help=(
-"pedir las contraseñas."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--no-iri"
-, help=(
-"desactivar soporte IRI."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--local-encoding=ENC"
-, help=(
-"usar ccodificación ENC como la codificación local para IRIs."
-), action="store", dest="
-")
-
-optparser.add_option(
-""
-,
-"--remote-encoding=ENC"
-, help=(
-"usar ENC como la codificación remota por defecto."
-), action="store", dest="
-")
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--unlink"
-"remove file before clobber."
-
-"Directorios:"
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-nd"
-"--no-directories"
-"no crear directorios."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-x"
-"--force-directories"
-"forzar la creación de directorios."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-nH"
-"--no-host-directories"
-"no crear directorios del anfitrión."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--protocol-directories"
-"use nombre de protocolo en los directorios."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-P"
-"--directory-prefix=PREFIX"
-"grabar los ficheros en PREFIX/..."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--cut-dirs=NÚMERO"
-"ignorar NÚMERO de componentes de directorio remoto."
-
-"Opciones HTTP:"
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--http-user=USUARIO"
-"poner el usuario http a USUARIO."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--http-password=PASS"
-"poner la contraseña http a PASS."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--no-cache"
-"no permitir los datos en tampón del servidor."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--default-page=NAME"
-"Cambiar el nombre de página por defecto (suele ser `index.html'.)."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-E"
-"--adjust-extension"
-"grabe documentos HTML/CSS con las extensiones correctas."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--ignore-length"
-"ignorar campo `Content-Length' en cabeceras ."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--header=STRING"
-"insertar STRING entre las cabeceras."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--max-redirect"
-"máximo de redirecciones permitidas por página."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--proxy-user=USUARIO"
-"poner USUARIO como nombre de usuario del proxy."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--proxy-password=PASS"
-"poner PASS como contraseña del proxy."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--referer=URL"
-"incluir cabecera `Referer: URL' en petición HTTP."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--save-headers"
-"grabar las cabeceras HTTP a fichero."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-U"
-"--user-agent=AGENTE"
-"identificarse como AGENTE en vez de Wget/VERSIÓN."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--no-http-keep-alive"
-"desactivar HTTP keep-alive (conexiones persistentes)."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--no-cookies"
-"no usar "cookies"."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--load-cookies=FICHERO"
-"cargar las "cookies" desde FICHERO antes de la sesión."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--save-cookies=FICHERO"
-"grabar las "cookies" a FICHERO después de la sesión."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--keep-session-cookies"
-"cargar y grabar las "cookies" de sesión (no-permanentes)."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--post-data=STRING"
-"usar el método POST; enviar STRING como los datos."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--post-file=FICHERO"
-"usar el método POST; envía el contenido de FICHERO."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--content-disposition"
-"cumplir con la cabecera Content-Disposition cuando se elige nombre de ficheros locales (EXPERIMENTAL)."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--auth-no-challenge"
-"enviar información de autenticicación básica HTTP sin antes esperar al desafío del servidor."
-
-"Opciones HTTPS (SSL/TLS):"
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--secure-protocol=PR"
-"elegir protocolo seguro entre auto, SSLv2, SSLv3, y TLSv1."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--no-check-certificate"
-"no validar el certificado del servidor."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--certificate=FILE"
-"fichero de certificado del cliente."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--certificate-type=TYPE"
-"tipo de certificado de cliente, PEM o DER."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--private-key=FILE"
-"fichero de llave privada."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--private-key-type=TYPE"
-"tipo de llave privada, PEM o DER."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--ca-certificate=FILE"
-"fichero con la agrupación de CAs."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--ca-directory=DIR"
-"directorio donde se guarda la lista "hash" de CAs."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--random-file=FILE"
-"fichero con datos aleatorios como semilla de SSL PRNG."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--egd-file=FICHERO"
-"fichero que denomina el conector EGD con datos aleatorios."
-
-"Opciones FTP:"
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--ftp-user=USUARIO"
-"poner USUARIO como el usuario de ftp."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--ftp-password=PASS"
-"poner PASS como contraseña ftp."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--no-remove-listing"
-"no eliminar los ficheros `.listing'."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--no-glob"
-"desactivar generación de nombres de fichero del FTP (globbing)."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--no-passive-ftp"
-"desactivar el modo "pasivo" de transferencia."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--retr-symlinks"
-"en modo recursivo, bajar los ficheros enlazados (no los directorios)."
-
-"Bajada recursiva:"
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-r"
-"--recursive"
-"especificar descarga recursiva."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-l"
-"--level=NUMBER"
-"máxima profundidad de recursión (inf o 0 para infinita)."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--delete-after"
-"borrar los ficheros localmente después de descargarlos."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-k"
-"--convert-links"
-"hacer que los enlaces en el HTML o CSS descargado apunte a ficheros locales."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-K"
-"--backup-converted"
-"antes de convertir el fichero X, salvaguardarlo como X.orig."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-m"
-"--mirror"
-"atajo para -N -r -l inf --no-remove-listing."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-p"
-"--page-requisites"
-"bajar todas las imágenes, etc. que se necesitan para mostrar la página HTML."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--strict-comments"
-"activar manejo stricto (SGML) de los comentarios en HTML."
-
-"Aceptar/rechazar recursivamente:"
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-A"
-"--accept=LIST"
-"lista separada por comas de extensiones aceptadas."
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-R"
-"--reject=LIST"
-"lista separada por comas de extensiones rechazadas."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-D"
-"--domains=LIST"
-"lista separada por comas de dominios aceptados."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--exclude-domains=LIST"
-"lista separada por comas de dominios rechazados."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--follow-ftp"
-"seguir los enlaces a FTP de los documentos HTML."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--follow-tags=LIST"
-"lista separada por comas de etiquetas HTML a seguir."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--ignore-tags=LIST"
-"lista separada por comas de etiquetas HTML a ignorar."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-H"
-"--span-hosts"
-"ir a equipos extraños en el recorrido recursivo."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-L"
-"--relative"
-"sólo seguir enlaces relativos."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-I"
-"--include-directories=LIST"
-"lista de directorios permitidos."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"--trust-server-names"
-"use the name specified by the redirection"
-"url last component."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-X"
-"--exclude-directories=LIST"
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"lista de directorios excluídos."
-
-optparser.add_option(
-,
-, help=(
-), action="store", dest="
-")
-"-np"
-"--no-parent"
-"no ascender al directorio padre."
-
-    # Define the options and the actions of each one
-    optparser.add_option("-s", "--section", help=("Process only the given "
-        "section"), action="store", dest="section")
-    optparser.add_option("-c", "--config", help=("Uses the given conf file "
-        "inteast of the default"), action="store", dest="conffile")
-    optparser.add_option("-l", "--log", help=("Uses the given log file "
-        "inteast of the default"), action="store", dest="logfile")
-    optparser.add_option("-v", "--verbose", action="count", dest="verbose",
-        help="Increment verbosity")
-    optparser.add_option("-q", "--quiet", action="count", dest="quiet",
-        help="Decrement verbosity")
+    "Inicio:"
+    optparser.add_option( "-V", "--version", help=("muestra la versión de Wget "
+        "y sale."), action="store", dest=" version ")
+    optparser.add_option("-h" , "--help", help=("muestra esta ayuda."),
+        action="store", dest="help")
+    optparser.add_option("-b", "--background", help=("irse a segundo plano"
+        "después de empezar."), action="store", dest="background")
+    optparser.add_option("-e", "--execute", help=("ejecuta una orden"
+        "estilo `.wgetrc'."), action="store", dest="execute")
+
+    "Ficheros de registro y de entrada:"
+    optparser.add_option("-o", "--output-file", help=("registrar mensajes"
+        "en FICHERO."), action="store", dest="output-file")
+    optparser.add_option("-a", "--append-output", help=("anexar mensajes a"
+        " FILE."), action="store", dest="append-output")
+    optparser.add_option("-d", "--debug", help=("saca montones de información "
+        "para depuración."), action="store", dest="debug")
+    optparser.add_option("-q", "--quiet", help=("silencioso (sin texto de "
+        "salida)."), action="store", dest="quiet")
+    optparser.add_option("-v", "--verbose", help=("sé verboso (es el método "
+        "por defecto)."), action="store", dest="verbose")
+    optparser.add_option("-nv", "--no-verbose", help=("desactiva modo verboso, "
+        "sin ser silencioso."), action="store", dest="no-verbose")
+    optparser.add_option("-i", "--input-file", help=("descarga URLs "
+        "encontradas en fichero (FILE) local o externo."), action="store",
+        dest="input-file")
+    optparser.add_option("-F", "--force-html", help=("trata el fichero de "
+        "entrada como HTML."), action="store", dest="force-html")
+    optparser.add_option("-B", "--base", help=("resuelve enlaces HTML del "
+        "fichero-de-entrada (-i -F) relativos a la URL."), action="store",
+        dest="base")
+    optparser.add_option("", "--config" , help=("Specify config file to use."),
+        action="store", dest="config")
+
+    "Descarga:"
+    optparser.add_option("-t", "--tries", help=("define número de intentos a "
+        "NÚMERO (0 es sin limite)."), action="store", dest="tries")
+    optparser.add_option("", "--retry-connrefused", help=("reintente incluso si"
+        " la conexión es rechazada."), action="store", dest="retry-connrefused")
+    optparser.add_option("-O", "--output-document", help=("escriba documentos "
+        "al fichero FILE."), action="store", dest="output-document")
+    optparser.add_option("-nc", "--no-clobber", help=("skip downloads that "
+        "would download to existing files (overwriting them)."), action="store",
+        dest="no-clobber")
+    optparser.add_option("-c", "--continue", help=("continuar una descarga "
+        "parcial de un fichero."), action="store", dest="continue")
+    optparser.add_option("", "--progress", help=("seleccione tipo de indicador "
+        "de progreso."), action="store", dest="progress")
+    optparser.add_option("-N", "--timestamping", help=("no re-recuperar "
+        "ficheros a menos que sean más nuevos que la versión local."),
+        action="store", dest="timestamping")
+    optparser.add_option("", "--no-use-server-timestamps", help=("no poner la "
+        "hora/fecha del fichero local a la que tenga el del servidor."), 
+        action="store", dest="no-use-server-timestamps")
+    optparser.add_option("-S", "--server-response", help=("mostrar la "
+        "respuesta del servidor."), action="store", dest="server-response")
+    optparser.add_option("", "--spider", help=("(araña) no descargar nada."),
+        action="store", dest="spider")
+    optparser.add_option("-T", "--timeout", help=("poner todos los valores de "
+        "temporización a SEGUNDOS."), action="store", dest="timeout")
+    optparser.add_option("", "--dns-timeout", help=("definir la temporización "
+        "de la búsqueda DNS a SEGS."), action="store", dest="dns-timeout")
+    optparser.add_option("", "--connect-timeout", help=("definir la "
+        "temporización de conexión a SEGS."), action="store",
+        dest="connect-timeout")
+    optparser.add_option("", "--read-timeout", help=("definir la temporización"
+        " de lectura a SEGS."), action="store", dest="read-timeout")
+    optparser.add_option("-w", "--wait", help=("espera tantos SEGUNDOS entre "
+        "reintentos."), action="store", dest="wait")
+    optparser.add_option("", "--waitretry", help=("espera 1..SEGUNDOS entre "
+        "reintentos de una descarga."), action="store", dest="waitretry")
+    optparser.add_option("", "--random-wait", help=("espera entre 0.5*WAIT...1"
+        ".5*WAIT segs. entre descargas."), action="store", dest="random-wait")
+    optparser.add_option("", "--no-proxy", help=("explícitamente desconecta el "
+        "proxy."), action="store", dest="no-proxy")
+    optparser.add_option("-Q", "--quota", help=("define la cuota de descarga a "
+        "NÚMERO."), action="store", dest="quota")
+    optparser.add_option("", "--bind-address", help=("bind a DIRECCIÓN "
+        "(nombredeequipo o IP) en equipo local."), action="store",
+        dest="bind-address")
+    optparser.add_option("", "--limit-rate", help=("limita velocidad de "
+        "descarga a VELOCIDAD."), action="store", dest="limit-rate")
+    optparser.add_option("", "--no-dns-cache", help=("desactiva búsquedas en "
+        "tampón DNS."), action="store", dest="no-dns-cache")
+    optparser.add_option("", "--restrict-file-names", help=("restringe "
+        "caracteres en nombres de ficheros a los que el SO permita."),
+        action="store", dest="restrict-file-names")
+    optparser.add_option("", "--ignore-case", help=("ignorar mayús/minúsculas "
+        "al encajar ficheros/directorios."), action="store", dest="ignore-case")
+    optparser.add_option("-4", "--inet4-only", help=("conectar sólo a "
+        "direcciones IPv4."), action="store", dest="inet4-only")
+    optparser.add_option("-6", "--inet6-only", help=("conectar sólo a "
+        "direcciones IPv6."), action="store", dest="inet6-only")
+    optparser.add_option("", "--prefer-family", help=("conectar primero a "
+        "direcciones de la familia especificada, bien IPv6, IPv4, o ninguna."),
+        action="store", dest="prefer-family")
+    optparser.add_option("", "--user", help=("poner el usuario de ambos ftp y "
+        "http a USUARIO."), action="store", dest="user")
+    optparser.add_option("", "--password", help=("poner la contraseña de "
+        "ambos ftp y http a CONTRASEÑA."), action="store", dest="password")
+    optparser.add_option("", "--ask-password", help=("pedir las contraseñas."),
+        action="store", dest="ask-password")
+    optparser.add_option("", "--no-iri", help=("desactivar soporte IRI."),
+        action="store", dest="no-iri")
+    optparser.add_option("", "--local-encoding", help=("usar ccodificación ENC "
+        "como la codificación local para IRIs."), action="store",
+        dest="local-encoding")
+    optparser.add_option("", "--remote-encoding", help=("usar ENC como la "
+        "codificación remota por defecto."), action="store",
+        dest="remote-encoding")
+    optparser.add_option("", "--unlink", help=("remove file before clobber."),
+        action="store", dest="unlink")
+
+    "Directorios:"
+    optparser.add_option("-nd", "--no-directories", help=("no crear "
+        "directorios."), action="store", dest="no-directories")
+    optparser.add_option("-x", "--force-directories", help=("forzar la "
+        "creación de directorios."), action="store", dest="force-directories")
+    optparser.add_option("-nH", "--no-host-directories", help=("no crear "
+        "directorios del anfitrión."), action="store",
+        dest="no-host-directories")
+    optparser.add_option("", "--protocol-directories", help=("use nombre de "
+        "protocolo en los directorios."), action="store",
+        dest="protocol-directories")
+    optparser.add_option("-P", "--directory-prefix", help=("grabar los "
+        "ficheros en PREFIX/..."), action="store", dest="directory-prefix")
+    optparser.add_option("", "--cut-dirs", help=("ignorar NÚMERO de "
+        "componentes de directorio remoto."), action="store", dest="cut-dirs")
+
+    "Opciones HTTP:"
+    optparser.add_option("", "--http-user", help=("poner el usuario http a "
+        "USUARIO."), action="store", dest="http-user")
+    optparser.add_option("", "--http-password", help=("poner la contraseña "
+        "http a PASS."), action="store", dest="http-password")
+    optparser.add_option("", "--no-cache", help=("no permitir los datos en "    
+        "tampón del servidor."), action="store", dest="no-cache")
+    optparser.add_option("", "--default-page", help=("Cambiar el nombre de "
+        "página por defecto (suele ser `index.html'.)."), action="store",
+        dest="default-page")
+    optparser.add_option("-E", "--adjust-extension", help=("grabe documentos "
+        "HTML/CSS con las extensiones correctas."), action="store",
+        dest="adjust-extension")
+    optparser.add_option("", "--ignore-length", help=("ignorar campo "
+        "`Content-Length' en cabeceras ."), action="store",
+        dest="ignore-length")
+    optparser.add_option("", "--header", help=("insertar STRING entre las "
+        "cabeceras."), action="store", dest="header")
+    optparser.add_option("", "--max-redirect", help=("máximo de redirecciones "
+        "permitidas por página."), action="store", dest="max-redirect")
+    optparser.add_option("", "--proxy-user", help=("poner USUARIO como nombre "
+        "de usuario del proxy."), action="store", dest="proxy-user")
+    optparser.add_option("", "--proxy-password", help=("poner PASS como "
+        "contraseña del proxy."), action="store", dest="proxy-password")
+    optparser.add_option("", "--referer", help=("incluir cabecera `Referer: "
+        "URL' en petición HTTP."), action="store", dest="referer")
+    optparser.add_option("", "--save-headers", help=("grabar las cabeceras "
+        "HTTP a fichero."), action="store", dest="save-headers")
+    optparser.add_option("-U", "--user-agent", help=("identificarse como "
+        "AGENTE en vez de Wget/VERSIÓN."), action="store", dest="user-agent")
+    optparser.add_option("", "--no-http-keep-alive", help=("desactivar HTTP "
+        "keep-alive (conexiones persistentes)."), action="store", 
+        dest="no-http-keep-alive")
+    optparser.add_option("", "--no-cookies", help=("""no usar "cookies"."""),
+        action="store", dest="no-cookies")
+    optparser.add_option("", "--load-cookies", help=('cargar las "cookies"'
+        " desde FICHERO antes de la sesión."), action="store",
+        dest="load-cookies")
+    optparser.add_option("", "--save-cookies", help=("""grabar las "cookies" a"
+        "FICHERO después de la sesión."""), action="store", dest="save-cookies")
+    optparser.add_option("", "--keep-session-cookies", help=("cargar y "
+        'grabar las "cookies" de sesión (no-permanentes).'), action="store",
+        dest="keep-session-cookies")
+    optparser.add_option("", "--post-data", help=("usar el método POST; enviar "
+        "STRING como los datos."), action="store", dest="post-data")
+    optparser.add_option("", "--post-file", help=("usar el método POST; envía "
+        "el contenido de FICHERO."), action="store", dest="post-file")
+    optparser.add_option("", "--content-disposition", help=("cumplir con la "
+        "cabecera Content-Disposition cuando se elige nombre de ficheros "
+        "locales (EXPERIMENTAL)."), action="store", dest="content-disposition")
+    optparser.add_option("", "--auth-no-challenge", help=("enviar información "
+        "de autenticicación básica HTTP sin antes esperar al desafío del "
+        "servidor."), action="store", dest="auth-no-challenge")
+
+    "Opciones HTTPS (SSL/TLS):"
+    optparser.add_option("", "--secure-protocol", help=("elegir protocolo "
+        "seguro entre auto, SSLv2, SSLv3, y TLSv1."), action="store",
+        dest="secure-protocol")
+    optparser.add_option("", "--no-check-certificate", help=("no validar el "
+        "certificado del servidor."), action="store",
+        dest="no-check-certificate")
+    optparser.add_option("", "--certificate", help=("fichero de certificado "
+        "del cliente."), action="store", dest="certificate")
+    optparser.add_option("", "--certificate-type", help=("tipo de "
+        "certificado de cliente, PEM o DER."), action="store",
+        dest="certificate-type")
+    optparser.add_option("", "--private-key", help=("fichero de llave "
+        "privada."), action="store", dest="private-key")
+    optparser.add_option("", "--private-key-type", help=("tipo de llave "
+        "privada, PEM o DER."), action="store", dest="private-key-type")
+    optparser.add_option("", "--ca-certificate", help=("fichero con la "
+        "agrupación de CAs."), action="store", dest="ca-certificate")
+    optparser.add_option("", "--ca-directory", help=("directorio donde se "
+        """guarda la lista "hash" de CAs."""), action="store",
+        dest="ca-directory")
+    optparser.add_option("", "--random-file", help=("fichero con datos "
+        "aleatorios como semilla de SSL PRNG."), action="store",
+        dest="random-file")
+    optparser.add_option("", "--egd-file", help=("fichero que denomina el "
+        "conector EGD con datos aleatorios."), action="store", dest="egd-file")
+
+    "Opciones FTP:"
+    optparser.add_option("", "--ftp-user", help=("poner USUARIO como el "
+        "usuario de ftp."), action="store", dest="ftp-user")
+    optparser.add_option("", "--ftp-password", help=("poner PASS como "
+        "contraseña ftp."), action="store", dest="ftp-password")
+    optparser.add_option("", "--no-remove-listing", help=("no eliminar los "
+        "ficheros `.listing'."), action="store", dest="no-remove-listing")
+    optparser.add_option("", "--no-glob" , help=("desactivar generación de "
+        "nombres de fichero del FTP (globbing)."), action="store",
+        dest="no-glob")
+    optparser.add_option("", "--no-passive-ftp", help=("desactivar el modo "
+        '"pasivo" de transferencia.'), action="store", dest="no-passive-ftp")
+    optparser.add_option("", "--retr-symlinks", help=("en modo recursivo, "
+        "bajar los ficheros enlazados (no los directorios)."), action="store",
+        dest="retr-symlinks")
+
+    "Bajada recursiva:"
+    optparser.add_option("-r", "--recursive", help=("especificar descarga "
+        "recursiva."), action="store", dest="recursive")
+    optparser.add_option("-l", "--level", help=("máxima profundidad de "
+        "recursión (inf o 0 para infinita)."), action="store", dest="level")
+    optparser.add_option("", "--delete-after", help=("borrar los ficheros "
+        "localmente después de descargarlos."), action="store",
+        dest="delete-after")
+    optparser.add_option("-k", "--convert-links", help=("hacer que los "
+        "enlaces en el HTML o CSS descargado apunte a ficheros locales."),
+        action="store", dest="convert-links")
+    optparser.add_option("-K", "--backup-converted", help=("antes de convertir "
+        "el fichero X, salvaguardarlo como X.orig."), action="store", 
+        dest="backup-converted")
+    optparser.add_option("-m", "--mirror", help=("atajo para -N -r -l inf "
+        "--no-remove-listing."), action="store", dest="mirror")
+    optparser.add_option("-p", "--page-requisites", help=("bajar todas las "
+        "imágenes, etc. que se necesitan para mostrar la página HTML."),
+        action="store", dest="page-requisites")
+    optparser.add_option("", "--strict-comments", help=("activar manejo "
+        "stricto (SGML) de los comentarios en HTML."), action="store",
+        dest="strict-comments")
+
+    "Aceptar/rechazar recursivamente:"
+    optparser.add_option("-A", "--accept", help=("lista separada por comas de "
+        "extensiones aceptadas."), action="store", dest="accept")
+    optparser.add_option("-R", "--reject", help=("lista separada por comas de "
+        "extensiones rechazadas."), action="store", dest="reject")
+    optparser.add_option("-D", "--domains", help=("lista separada por comas "
+        "de dominios aceptados."), action="store", dest="domains")
+    optparser.add_option("", "--exclude-domains", help=("lista separada por "
+        "comas de dominios rechazados."), action="store",
+        dest="exclude-domains")
+    optparser.add_option("", "--follow-ftp", help=("seguir los enlaces a FTP "
+        "de los documentos HTML."), action="store", dest="follow-ftp")
+    optparser.add_option("", "--follow-tags", help=("lista separada por "
+        "comas de etiquetas HTML a seguir."), action="store",
+        dest="follow-tags")
+    optparser.add_option("", "--ignore-tags", help=("lista separada por comas "
+        "de etiquetas HTML a ignorar."), action="store", dest="ignore-tags")
+    optparser.add_option("-H", "--span-hosts", help=("ir a equipos extraños en "
+        "el recorrido recursivo."), action="store", dest="span-hosts")
+    optparser.add_option("-L", "--relative", help=("sólo seguir enlaces "
+        "relativos."), action="store", dest="relative")
+    optparser.add_option("-I", "--include-directories", help=("lista de "
+        "directorios permitidos."), action="store", dest="include-directories")
+    optparser.add_option("", "--trust-server-names", help=("use the name "
+        "specified by the redirection url last component."), action="store",
+        dest="trust-server-names")
+    optparser.add_option("-X", "--exclude-directories", help=("lista de "
+        "directorios excluídos."), action="store", dest="exclude-directories")
+    optparser.add_option("-np", "--no-parent", help=("no ascender al "
+        "directorio padre."), action="store", dest="no-parent")
 
     # Define the default options
     optparser.set_defaults(verbose=0, quiet=0, logfile=LOG_FILE,
