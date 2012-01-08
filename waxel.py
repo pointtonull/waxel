@@ -3,6 +3,7 @@
 
 from ConfigParser import SafeConfigParser
 from optparse import OptionParser
+from subprocess import call
 import logging
 import os
 import re
@@ -380,14 +381,53 @@ def get_options():
 
 
 class Parser:
-    def __init__(self):
-        pass
+    def __init__(self, options):
+        self.options = options
+
+    def get_cmd(self):
+        return [""]
+
+    def run_cmd(self):
+        error = call(self.get_cmd())
+        return error
+
+
+class Axel(Parser):
+    def get_cmd(self):
+        raise NotImplementedError("estado maqueta")
+        executable = "axel"
+        return cmd
+
+
+def get_paths(command):
+    """
+    return a list of the abspath to executables of <command> except this file 
+    """
+    my_path = os.path.realpath(__file__)
+    paths = (os.path.realpath(os.path.join(path, command))
+        for path in os.environ["PATH"].split(":")
+            if os.path.exists(os.path.join(path, command)))
+    paths = [path for path in paths if path != my_path]
+    return paths
+
+
+class Wget(Parser):
+    def get_cmd(self):
+        executable = get_paths("wget")[0]
+        cmd = [executable] + sys.argv[1:]
+        return cmd
+
 
 def main(options, args):
     "The main routine"
     # Read the config values from the config files
     config = get_config(options.conffile)
-    parser = Parser()
+    try:
+        error = Axel(options).run_cmd()
+    except NotImplementedError:
+        error = Wget(options).run_cmd()
+    return error
+
 
 
 if __name__ == "__main__":
