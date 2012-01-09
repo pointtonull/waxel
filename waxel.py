@@ -430,7 +430,8 @@ class Parser:
 class Axel(Parser):
     def __init__(self, options):
         Parser.__init__(self, options)
-     
+        self.clean_state_file()
+
         self.pre_actions = []
         self.post_actions = []
         self.axel_opts = []
@@ -453,25 +454,40 @@ class Axel(Parser):
         if option in rules:
             rules[option](option, value)
         else:
-            LOG("Axel: parse_option: Error: no implementado %s %s" % (option,
+            LOG("ERROR: parse_option: Error: no implementado %s %s" % (option,
                 value))
             raise NotImplementedError(option)
 
 
-    def opts_set_continue(self, option, value):
+    def get_output_file(self):
         out_file = self.options["output-document"]
         if not out_file:
             urls = self.options["URL"]
             if len(urls) == 1:
                 url = urls[0]
             else:
-                raise NotImplementedError(option + " when I cant be sure where"
-                    "the output will be put")
+                return None
             out_file = os.path.basename(url)
-        state_file = out_file + "st"
-        exists = os.path.exists
+        return out_file
 
-        if exists(out_file) and not exists(state_file):
+
+    def get_state_file(self):
+        return self.get_out_file() + "st"
+
+
+    def clean_state_file(self):
+        if os.path.exists(state_file) and not os.path.exists(out_file):
+            os.remove(state_file)
+
+
+    def opts_set_continue(self, option, value):
+        out_file = self.get_out_file()
+        if not out_file:
+            raise NotImplementedError(option + " when I cant be sure where"
+                "the output will be put")
+        state_file = self.get_state_file()
+
+        if os.path.exists(out_file) and not os.path.exists(state_file):
             raise NotImplementedError(option + " when another program started"
                 " the downlad")
 
