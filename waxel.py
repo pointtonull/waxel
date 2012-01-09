@@ -439,6 +439,7 @@ class Axel(Parser):
     def parse_option(self, option, value):
         rules = {
             "URL" : self.add_value,
+            "header" : self.add_headers,
             }
 
         if option in rules:
@@ -457,11 +458,15 @@ class Axel(Parser):
         for arg in args:
             self.axel_args.append(arg)
 
+    def add_headers(self, option, value):
+        args = ['--header=%s' % header for header in value]
+        self.axel_args += args
+
 
     def get_cmd(self):
         executable = get_paths("axel")[0]
         cmd = [executable] + self.axel_args
-        INFO(cmd)
+        DEBUG(cmd)
         return cmd
 
 
