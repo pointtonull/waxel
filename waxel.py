@@ -473,12 +473,19 @@ class Axel(Parser):
 
 
     def get_state_file(self):
-        return self.get_out_file() + "st"
+        out_file = self.get_output_file()
+        if out_file:
+            return out_file + ".st"
+        else:
+            return None
 
 
     def clean_state_file(self):
-        if os.path.exists(state_file) and not os.path.exists(out_file):
-            os.remove(state_file)
+        out_file = self.get_output_file()
+        if out_file:
+            state_file = self.get_state_file()
+            if os.path.exists(state_file) and not os.path.exists(out_file):
+                os.remove(state_file)
 
 
     def opts_set_continue(self, option, value):
@@ -535,9 +542,6 @@ def main(options):
     try:
         error = Axel(options).run_cmd()
     except NotImplementedError:
-        error = Wget(options).run_cmd()
-    except:
-        traceback.print_last(file=open(LOG_FILE, "a"))
         error = Wget(options).run_cmd()
     return error
 
