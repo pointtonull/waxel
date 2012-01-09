@@ -2,7 +2,7 @@
 #-*- coding: UTF-8 -*-
 
 from ConfigParser import SafeConfigParser
-from optparse import OptionParser
+from argparse import ArgumentParser
 from subprocess import call
 import logging
 import os
@@ -20,6 +20,7 @@ Know issues:
     + NEVER will implement boggus parts from wget interface like:
         - two chars shorts options: -nc, -nv, -nb, -nH, -np
 """
+
 
 def get_depth():
     """
@@ -54,6 +55,7 @@ def get_depth():
 
     return max(minn - 4, 0)
 
+
 def ident(func, identation="  "):
     """
     Decorates func to add identation prior arg[0]
@@ -62,6 +64,7 @@ def ident(func, identation="  "):
         newmessage = "%s%s" % (identation * (get_depth() - 1), message)
         return func(newmessage, *args, **kwargs)
     return decorated
+
 
 def get_config(conf_file=None):
     """
@@ -74,310 +77,335 @@ def get_config(conf_file=None):
 
     return config
 
+
 def get_options():
     """
     Parse the arguments
     """
     # Instance the parser and define the usage message
-    optparser = OptionParser(usage="""
-    %prog [-vqdsc]""")
+    argparser = ArgumentParser()
 
     "Inicio:"
-    optparser.add_option( "-V", "--version", help=("muestra la versión de Wget "
-        "y sale."), action="store_true", dest="version ")
-    optparser.add_option("-b", "--background", help=("irse a segundo plano"
+    argparser.add_argument( "-V", "--version", help=("muestra la versión de "
+        "Wget y sale."), action="store_true", dest="version ")
+    argparser.add_argument("-b", "--background", help=("irse a segundo plano"
         "después de empezar."), action="store_true", dest="background")
-    optparser.add_option("-e", "--execute", help=("ejecuta una orden"
+    argparser.add_argument("-e", "--execute", help=("ejecuta una orden"
         "estilo `.wgetrc'."), action="store", dest="execute")
 
     "Ficheros de registro y de entrada:"
-    optparser.add_option("-o", "--output-file", help=("registrar mensajes"
+    argparser.add_argument("-o", "--output-file", help=("registrar mensajes"
         "en FICHERO."), action="store", dest="output-file")
-    optparser.add_option("-a", "--append-output", help=("anexar mensajes a"
+    argparser.add_argument("-a", "--append-output", help=("anexar mensajes a"
         " FILE."), action="store", dest="append-output")
-    optparser.add_option("-d", "--debug", help=("saca montones de información "
-        "para depuración."), action="store_true", dest="debug")
-    optparser.add_option("-q", "--quiet", help=("silencioso (sin texto de "
+    argparser.add_argument("-d", "--debug", help=("saca montones de información"
+        " para depuración."), action="store_true", dest="debug")
+    argparser.add_argument("-q", "--quiet", help=("silencioso (sin texto de "
         "salida)."), action="store_true", dest="quiet")
-    optparser.add_option("-v", "--verbose", help=("sé verboso (es el método "
+    argparser.add_argument("-v", "--verbose", help=("sé verboso (es el método "
         "por defecto)."), action="store_true", dest="verbose")
-    optparser.add_option("--no-verbose", help=("desactiva modo verboso, "
+    argparser.add_argument("--no-verbose", help=("desactiva modo verboso, "
         "sin ser silencioso."), action="store_true", dest="no-verbose")
-    optparser.add_option("-i", "--input-file", help=("descarga URLs "
+    argparser.add_argument("-i", "--input-file", help=("descarga URLs "
         "encontradas en fichero (FILE) local o externo."), action="store",
         dest="input-file")
-    optparser.add_option("-F", "--force-html", help=("trata el fichero de "
+    argparser.add_argument("-F", "--force-html", help=("trata el fichero de "
         "entrada como HTML."), action="store_true", dest="force-html")
-    optparser.add_option("-B", "--base", help=("resuelve enlaces HTML del "
+    argparser.add_argument("-B", "--base", help=("resuelve enlaces HTML del "
         "fichero-de-entrada (-i -F) relativos a la URL."), action="store",
         dest="base")
-    optparser.add_option("", "--config" , help=("Specify config file to use."),
+    argparser.add_argument("--config" , help=("Specify config file to use."),
         action="store_true", dest="config")
 
     "Descarga:"
-    optparser.add_option("-t", "--tries", help=("define número de intentos a "
-        "NÚMERO (0 es sin limite)."), action="store", type="int", dest="tries")
-    optparser.add_option("", "--retry-connrefused", help=("reintente incluso si"
+    argparser.add_argument("-t", "--tries", help=("define número de intentos a "
+        "NÚMERO (0 es sin limite)."), action="store", type=int, dest="tries")
+    argparser.add_argument("--retry-connrefused", help=("reintente incluso si"
         " la conexión es rechazada."), action="store_true",
         dest="retry-connrefused")
-    optparser.add_option("-O", "--output-document", help=("escriba documentos "
-        "al fichero FILE."), action="store", dest="output-document")
-    optparser.add_option("--no-clobber", help=("skip downloads that "
+    argparser.add_argument("-O", "--output-document", help=("escriba documentos"
+        " al fichero FILE."), action="store", dest="output-document")
+    argparser.add_argument("--no-clobber", help=("skip downloads that "
         "would download to existing files (overwriting them)."),
         action="store_true", dest="no-clobber")
-    optparser.add_option("-c", "--continue", help=("continuar una descarga "
+    argparser.add_argument("-c", "--continue", help=("continuar una descarga "
         "parcial de un fichero."), action="store_true", dest="continue")
-    optparser.add_option("", "--progress", help=("seleccione tipo de indicador "
+    argparser.add_argument("--progress", help=("seleccione tipo de indicador "
         "de progreso."), action="store", dest="progress")
-    optparser.add_option("-N", "--timestamping", help=("no re-recuperar "
+    argparser.add_argument("-N", "--timestamping", help=("no re-recuperar "
         "ficheros a menos que sean más nuevos que la versión local."),
         action="store_true", dest="timestamping")
-    optparser.add_option("", "--no-use-server-timestamps", help=("no poner la "
+    argparser.add_argument("--no-use-server-timestamps", help=("no poner la "
         "hora/fecha del fichero local a la que tenga el del servidor."), 
         action="store_true", dest="no-use-server-timestamps")
-    optparser.add_option("-S", "--server-response", help=("mostrar la "
+    argparser.add_argument("-S", "--server-response", help=("mostrar la "
         "respuesta del servidor."), action="store_true", dest="server-response")
-    optparser.add_option("", "--spider", help=("(araña) no descargar nada."),
+    argparser.add_argument("--spider", help=("(araña) no descargar nada."),
         action="store_true", dest="spider")
-    optparser.add_option("-T", "--timeout", help=("poner todos los valores de "
-        "temporización a SEGUNDOS."), action="store", type="int", 
+    argparser.add_argument("-T", "--timeout", help=("poner todos los valores de"
+        " temporización a SEGUNDOS."), action="store", type=int, 
         dest="timeout")
-    optparser.add_option("", "--dns-timeout", help=("definir la temporización "
-        "de la búsqueda DNS a SEGS."), action="store", type="int",
+    argparser.add_argument("--dns-timeout", help=("definir la temporización "
+        "de la búsqueda DNS a SEGS."), action="store", type=int,
         dest="dns-timeout")
-    optparser.add_option("", "--connect-timeout", help=("definir la "
-        "temporización de conexión a SEGS."), action="store", type="int",
+    argparser.add_argument("--connect-timeout", help=("definir la "
+        "temporización de conexión a SEGS."), action="store", type=int,
         dest="connect-timeout")
-    optparser.add_option("", "--read-timeout", help=("definir la temporización"
-        " de lectura a SEGS."), action="store", type="int", dest="read-timeout")
-    optparser.add_option("-w", "--wait", help=("espera tantos SEGUNDOS entre "
-        "reintentos."), action="store", type="int", dest="wait")
-    optparser.add_option("", "--waitretry", help=("espera 1..SEGUNDOS entre "
-        "reintentos de una descarga."), action="store", type="int",
+    argparser.add_argument("--read-timeout", help=("definir la temporización"
+        " de lectura a SEGS."), action="store", type=int, dest="read-timeout")
+    argparser.add_argument("-w", "--wait", help=("espera tantos SEGUNDOS entre "
+        "reintentos."), action="store", type=int, dest="wait")
+    argparser.add_argument("--waitretry", help=("espera 1..SEGUNDOS entre "
+        "reintentos de una descarga."), action="store", type=int,
         dest="waitretry")
-    optparser.add_option("", "--random-wait", help=("espera entre 0.5*WAIT...1"
+    argparser.add_argument("--random-wait", help=("espera entre 0.5*WAIT...1"
         ".5*WAIT segs. entre descargas."), action="store_true",
         dest="random-wait")
-    optparser.add_option("", "--no-proxy", help=("explícitamente desconecta el "
+    argparser.add_argument("--no-proxy", help=("explícitamente desconecta el "
         "proxy."), action="store_true", dest="no-proxy")
-    optparser.add_option("-Q", "--quota", help=("define la cuota de descarga a "
-        "NÚMERO."), action="store", type="int", dest="quota")
-    optparser.add_option("", "--bind-address", help=("bind a DIRECCIÓN "
+    argparser.add_argument("-Q", "--quota", help=("define la cuota de descarga "
+        "a NÚMERO."), action="store", type=int, dest="quota")
+    argparser.add_argument("--bind-address", help=("bind a DIRECCIÓN "
         "(nombredeequipo o IP) en equipo local."), action="store",
         dest="bind-address")
-    optparser.add_option("", "--limit-rate", help=("limita velocidad de "
+    argparser.add_argument("--limit-rate", help=("limita velocidad de "
         "descarga a VELOCIDAD."), action="store", dest="limit-rate")
-    optparser.add_option("", "--no-dns-cache", help=("desactiva búsquedas en "
+    argparser.add_argument("--no-dns-cache", help=("desactiva búsquedas en "
         "tampón DNS."), action="store_true", dest="no-dns-cache")
-    optparser.add_option("", "--restrict-file-names", help=("restringe "
+    argparser.add_argument("--restrict-file-names", help=("restringe "
         "caracteres en nombres de ficheros a los que el SO permita."),
         action="store_true", dest="restrict-file-names")
-    optparser.add_option("", "--ignore-case", help=("ignorar mayús/minúsculas "
+    argparser.add_argument("--ignore-case", help=("ignorar mayús/minúsculas "
         "al encajar ficheros/directorios."), action="store_true",
         dest="ignore-case")
-    optparser.add_option("-4", "--inet4-only", help=("conectar sólo a "
+    argparser.add_argument("-4", "--inet4-only", help=("conectar sólo a "
         "direcciones IPv4."), action="store_true", dest="inet4-only")
-    optparser.add_option("-6", "--inet6-only", help=("conectar sólo a "
+    argparser.add_argument("-6", "--inet6-only", help=("conectar sólo a "
         "direcciones IPv6."), action="store_true", dest="inet6-only")
-    optparser.add_option("", "--prefer-family", help=("conectar primero a "
+    argparser.add_argument("--prefer-family", help=("conectar primero a "
         "direcciones de la familia especificada, bien IPv6, IPv4, o ninguna."),
         action="store", dest="prefer-family")
-    optparser.add_option("", "--user", help=("poner el usuario de ambos ftp y "
+    argparser.add_argument("--user", help=("poner el usuario de ambos ftp y "
         "http a USUARIO."), action="store", dest="user")
-    optparser.add_option("", "--password", help=("poner la contraseña de "
+    argparser.add_argument("--password", help=("poner la contraseña de "
         "ambos ftp y http a CONTRASEÑA."), action="store", dest="password")
-    optparser.add_option("", "--ask-password", help=("pedir las contraseñas."),
+    argparser.add_argument("--ask-password", help=("pedir las contraseñas."),
         action="store_true", dest="ask-password")
-    optparser.add_option("", "--no-iri", help=("desactivar soporte IRI."),
+    argparser.add_argument("--no-iri", help=("desactivar soporte IRI."),
         action="store_true", dest="no-iri")
-    optparser.add_option("", "--local-encoding", help=("usar ccodificación ENC "
+    argparser.add_argument("--local-encoding", help=("usar ccodificación ENC "
         "como la codificación local para IRIs."), action="store",
         dest="local-encoding")
-    optparser.add_option("", "--remote-encoding", help=("usar ENC como la "
+    argparser.add_argument("--remote-encoding", help=("usar ENC como la "
         "codificación remota por defecto."), action="store",
         dest="remote-encoding")
-    optparser.add_option("", "--unlink", help=("remove file before clobber."),
+    argparser.add_argument("--unlink", help=("remove file before clobber."),
         action="store_true", dest="unlink")
 
     "Directorios:"
-    optparser.add_option("--no-directories", help=("no crear "
+    argparser.add_argument("--no-directories", help=("no crear "
         "directorios."), action="store_true", dest="no-directories")
-    optparser.add_option("-x", "--force-directories", help=("forzar la "
+    argparser.add_argument("-x", "--force-directories", help=("forzar la "
         "creación de directorios."), action="store_true",
         dest="force-directories")
-    optparser.add_option("--no-host-directories", help=("no crear "
+    argparser.add_argument("--no-host-directories", help=("no crear "
         "directorios del anfitrión."), action="store_true",
         dest="no-host-directories")
-    optparser.add_option("", "--protocol-directories", help=("use nombre de "
+    argparser.add_argument("--protocol-directories", help=("use nombre de "
         "protocolo en los directorios."), action="store_true",
         dest="protocol-directories")
-    optparser.add_option("-P", "--directory-prefix", help=("grabar los "
+    argparser.add_argument("-P", "--directory-prefix", help=("grabar los "
         "ficheros en PREFIX/..."), action="store", dest="directory-prefix")
-    optparser.add_option("", "--cut-dirs", help=("ignorar NÚMERO de "
-        "componentes de directorio remoto."), action="store", type="int",
+    argparser.add_argument("--cut-dirs", help=("ignorar NÚMERO de "
+        "componentes de directorio remoto."), action="store", type=int,
         dest="cut-dirs")
 
     "Opciones HTTP:"
-    optparser.add_option("", "--http-user", help=("poner el usuario http a "
+    argparser.add_argument("--http-user", help=("poner el usuario http a "
         "USUARIO."), action="store", dest="http-user")
-    optparser.add_option("", "--http-password", help=("poner la contraseña "
+    argparser.add_argument("--http-password", help=("poner la contraseña "
         "http a PASS."), action="store", dest="http-password")
-    optparser.add_option("", "--no-cache", help=("no permitir los datos en "    
+    argparser.add_argument("--no-cache", help=("no permitir los datos en "    
         "tampón del servidor."), action="store_true", dest="no-cache")
-    optparser.add_option("", "--default-page", help=("Cambiar el nombre de "
+    argparser.add_argument("--default-page", help=("Cambiar el nombre de "
         "página por defecto (suele ser `index.html'.)."), action="store",
         dest="default-page")
-    optparser.add_option("-E", "--adjust-extension", help=("grabe documentos "
+    argparser.add_argument("-E", "--adjust-extension", help=("grabe documentos "
         "HTML/CSS con las extensiones correctas."), action="store_true",
         dest="adjust-extension")
-    optparser.add_option("", "--ignore-length", help=("ignorar campo "
+    argparser.add_argument("--ignore-length", help=("ignorar campo "
         "`Content-Length' en cabeceras ."), action="store_true",
         dest="ignore-length")
-    optparser.add_option("", "--header", help=("insertar STRING entre las "
-        "cabeceras."), action="store", dest="header")
-    optparser.add_option("", "--max-redirect", help=("máximo de redirecciones "
-        "permitidas por página."), action="store", type="int",
+    argparser.add_argument("--header", help=("insertar STRING entre las "
+        "cabeceras."), action="append", dest="header")
+    argparser.add_argument("--max-redirect", help=("máximo de redirecciones "
+        "permitidas por página."), action="store", type=int,
         dest="max-redirect")
-    optparser.add_option("", "--proxy-user", help=("poner USUARIO como nombre "
+    argparser.add_argument("--proxy-user", help=("poner USUARIO como nombre "
         "de usuario del proxy."), action="store", dest="proxy-user")
-    optparser.add_option("", "--proxy-password", help=("poner PASS como "
+    argparser.add_argument("--proxy-password", help=("poner PASS como "
         "contraseña del proxy."), action="store", dest="proxy-password")
-    optparser.add_option("", "--referer", help=("incluir cabecera `Referer: "
+    argparser.add_argument("--referer", help=("incluir cabecera `Referer: "
         "URL' en petición HTTP."), action="store", dest="referer")
-    optparser.add_option("", "--save-headers", help=("grabar las cabeceras "
+    argparser.add_argument("--save-headers", help=("grabar las cabeceras "
         "HTTP a fichero."), action="store_true", dest="save-headers")
-    optparser.add_option("-U", "--user-agent", help=("identificarse como "
+    argparser.add_argument("-U", "--user-agent", help=("identificarse como "
         "AGENTE en vez de Wget/VERSIÓN."), action="store", dest="user-agent")
-    optparser.add_option("", "--no-http-keep-alive", help=("desactivar HTTP "
+    argparser.add_argument("--no-http-keep-alive", help=("desactivar HTTP "
         "keep-alive (conexiones persistentes)."), action="store_true", 
         dest="no-http-keep-alive")
-    optparser.add_option("", "--no-cookies", help=("""no usar "cookies"."""),
+    argparser.add_argument("--no-cookies", help=("""no usar "cookies"."""),
         action="store_true", dest="no-cookies")
-    optparser.add_option("", "--load-cookies", help=('cargar las "cookies"'
+    argparser.add_argument("--load-cookies", help=('cargar las "cookies"'
         " desde FICHERO antes de la sesión."), action="store",
         dest="load-cookies")
-    optparser.add_option("", "--save-cookies", help=("""grabar las "cookies" a"
+    argparser.add_argument("--save-cookies", help=("""grabar las "cookies" a"
         "FICHERO después de la sesión."""), action="store", dest="save-cookies")
-    optparser.add_option("", "--keep-session-cookies", help=("cargar y "
+    argparser.add_argument("--keep-session-cookies", help=("cargar y "
         'grabar las "cookies" de sesión (no-permanentes).'),
         action="store_true", dest="keep-session-cookies")
-    optparser.add_option("", "--post-data", help=("usar el método POST; enviar "
+    argparser.add_argument("--post-data", help=("usar el método POST; enviar "
         "STRING como los datos."), action="store", dest="post-data")
-    optparser.add_option("", "--post-file", help=("usar el método POST; envía "
+    argparser.add_argument("--post-file", help=("usar el método POST; envía "
         "el contenido de FICHERO."), action="store", dest="post-file")
-    optparser.add_option("", "--content-disposition", help=("cumplir con la "
+    argparser.add_argument("--content-disposition", help=("cumplir con la "
         "cabecera Content-Disposition cuando se elige nombre de ficheros "
         "locales (EXPERIMENTAL)."), action="store_true",
         dest="content-disposition")
-    optparser.add_option("", "--auth-no-challenge", help=("enviar información "
+    argparser.add_argument("--auth-no-challenge", help=("enviar información "
         "de autenticicación básica HTTP sin antes esperar al desafío del "
         "servidor."), action="store_true", dest="auth-no-challenge")
 
     "Opciones HTTPS (SSL/TLS):"
-    optparser.add_option("", "--secure-protocol", help=("elegir protocolo "
+    argparser.add_argument("--secure-protocol", help=("elegir protocolo "
         "seguro entre auto, SSLv2, SSLv3, y TLSv1."), action="store",
         dest="secure-protocol")
-    optparser.add_option("", "--no-check-certificate", help=("no validar el "
+    argparser.add_argument("--no-check-certificate", help=("no validar el "
         "certificado del servidor."), action="store_true",
         dest="no-check-certificate")
-    optparser.add_option("", "--certificate", help=("fichero de certificado "
+    argparser.add_argument("--certificate", help=("fichero de certificado "
         "del cliente."), action="store", dest="certificate")
-    optparser.add_option("", "--certificate-type", help=("tipo de "
+    argparser.add_argument("--certificate-type", help=("tipo de "
         "certificado de cliente, PEM o DER."), action="store",
         dest="certificate-type")
-    optparser.add_option("", "--private-key", help=("fichero de llave "
+    argparser.add_argument("--private-key", help=("fichero de llave "
         "privada."), action="store", dest="private-key")
-    optparser.add_option("", "--private-key-type", help=("tipo de llave "
+    argparser.add_argument("--private-key-type", help=("tipo de llave "
         "privada, PEM o DER."), action="store", dest="private-key-type")
-    optparser.add_option("", "--ca-certificate", help=("fichero con la "
+    argparser.add_argument("--ca-certificate", help=("fichero con la "
         "agrupación de CAs."), action="store", dest="ca-certificate")
-    optparser.add_option("", "--ca-directory", help=("directorio donde se "
+    argparser.add_argument("--ca-directory", help=("directorio donde se "
         """guarda la lista "hash" de CAs."""), action="store",
         dest="ca-directory")
-    optparser.add_option("", "--random-file", help=("fichero con datos "
+    argparser.add_argument("--random-file", help=("fichero con datos "
         "aleatorios como semilla de SSL PRNG."), action="store",
         dest="random-file")
-    optparser.add_option("", "--egd-file", help=("fichero que denomina el "
+    argparser.add_argument("--egd-file", help=("fichero que denomina el "
         "conector EGD con datos aleatorios."), action="store", dest="egd-file")
 
     "Opciones FTP:"
-    optparser.add_option("", "--ftp-user", help=("poner USUARIO como el "
+    argparser.add_argument("--ftp-user", help=("poner USUARIO como el "
         "usuario de ftp."), action="store", dest="ftp-user")
-    optparser.add_option("", "--ftp-password", help=("poner PASS como "
+    argparser.add_argument("--ftp-password", help=("poner PASS como "
         "contraseña ftp."), action="store", dest="ftp-password")
-    optparser.add_option("", "--no-remove-listing", help=("no eliminar los "
+    argparser.add_argument("--no-remove-listing", help=("no eliminar los "
         "ficheros `.listing'."), action="store_true", dest="no-remove-listing")
-    optparser.add_option("", "--no-glob" , help=("desactivar generación de "
+    argparser.add_argument("--no-glob" , help=("desactivar generación de "
         "nombres de fichero del FTP (globbing)."), action="store_true",
         dest="no-glob")
-    optparser.add_option("", "--no-passive-ftp", help=("desactivar el modo "
+    argparser.add_argument("--no-passive-ftp", help=("desactivar el modo "
         '"pasivo" de transferencia.'), action="store_true",
         dest="no-passive-ftp")
-    optparser.add_option("", "--retr-symlinks", help=("en modo recursivo, "
+    argparser.add_argument("--retr-symlinks", help=("en modo recursivo, "
         "bajar los ficheros enlazados (no los directorios)."),
         action="store_true", dest="retr-symlinks")
 
     "Bajada recursiva:"
-    optparser.add_option("-r", "--recursive", help=("especificar descarga "
+    argparser.add_argument("-r", "--recursive", help=("especificar descarga "
         "recursiva."), action="store_true", dest="recursive")
-    optparser.add_option("-l", "--level", help=("máxima profundidad de "
+    argparser.add_argument("-l", "--level", help=("máxima profundidad de "
         "recursión (inf o 0 para infinita)."), action="store", dest="level")
-    optparser.add_option("", "--delete-after", help=("borrar los ficheros "
+    argparser.add_argument("--delete-after", help=("borrar los ficheros "
         "localmente después de descargarlos."), action="store_true",
         dest="delete-after")
-    optparser.add_option("-k", "--convert-links", help=("hacer que los "
+    argparser.add_argument("-k", "--convert-links", help=("hacer que los "
         "enlaces en el HTML o CSS descargado apunte a ficheros locales."),
         action="store_true", dest="convert-links")
-    optparser.add_option("-K", "--backup-converted", help=("antes de convertir "
-        "el fichero X, salvaguardarlo como X.orig."), action="store_true", 
-        dest="backup-converted")
-    optparser.add_option("-m", "--mirror", help=("atajo para -N -r -l inf "
+    argparser.add_argument("-K", "--backup-converted", help=("antes de "
+        "convertir el fichero X, salvaguardarlo como X.orig."),
+        action="store_true", dest="backup-converted")
+    argparser.add_argument("-m", "--mirror", help=("atajo para -N -r -l inf "
         "--no-remove-listing."), action="store_true", dest="mirror")
-    optparser.add_option("-p", "--page-requisites", help=("bajar todas las "
+    argparser.add_argument("-p", "--page-requisites", help=("bajar todas las "
         "imágenes, etc. que se necesitan para mostrar la página HTML."),
         action="store_true", dest="page-requisites")
-    optparser.add_option("", "--strict-comments", help=("activar manejo "
+    argparser.add_argument("--strict-comments", help=("activar manejo "
         "stricto (SGML) de los comentarios en HTML."), action="store_true",
         dest="strict-comments")
 
     "Aceptar/rechazar recursivamente:"
-    optparser.add_option("-A", "--accept", help=("lista separada por comas de "
-        "extensiones aceptadas."), action="store", dest="accept")
-    optparser.add_option("-R", "--reject", help=("lista separada por comas de "
-        "extensiones rechazadas."), action="store", dest="reject")
-    optparser.add_option("-D", "--domains", help=("lista separada por comas "
+    argparser.add_argument("-A", "--accept", help=("lista separada por comas de"
+        " extensiones aceptadas."), action="store", dest="accept")
+    argparser.add_argument("-R", "--reject", help=("lista separada por comas de"
+        " extensiones rechazadas."), action="store", dest="reject")
+    argparser.add_argument("-D", "--domains", help=("lista separada por comas "
         "de dominios aceptados."), action="store", dest="domains")
-    optparser.add_option("", "--exclude-domains", help=("lista separada por "
+    argparser.add_argument("--exclude-domains", help=("lista separada por "
         "comas de dominios rechazados."), action="store",
         dest="exclude-domains")
-    optparser.add_option("", "--follow-ftp", help=("seguir los enlaces a FTP "
+    argparser.add_argument("--follow-ftp", help=("seguir los enlaces a FTP "
         "de los documentos HTML."), action="store_true", dest="follow-ftp")
-    optparser.add_option("", "--follow-tags", help=("lista separada por "
+    argparser.add_argument("--follow-tags", help=("lista separada por "
         "comas de etiquetas HTML a seguir."), action="store",
         dest="follow-tags")
-    optparser.add_option("", "--ignore-tags", help=("lista separada por comas "
+    argparser.add_argument("--ignore-tags", help=("lista separada por comas "
         "de etiquetas HTML a ignorar."), action="store", dest="ignore-tags")
-    optparser.add_option("-H", "--span-hosts", help=("ir a equipos extraños en "
-        "el recorrido recursivo."), action="store_true", dest="span-hosts")
-    optparser.add_option("-L", "--relative", help=("sólo seguir enlaces "
+    argparser.add_argument("-H", "--span-hosts", help=("ir a equipos extraños "
+        "en el recorrido recursivo."), action="store_true", dest="span-hosts")
+    argparser.add_argument("-L", "--relative", help=("sólo seguir enlaces "
         "relativos."), action="store_true", dest="relative")
-    optparser.add_option("-I", "--include-directories", help=("lista de "
+    argparser.add_argument("-I", "--include-directories", help=("lista de "
         "directorios permitidos."), action="store", dest="include-directories")
-    optparser.add_option("", "--trust-server-names", help=("use the name "
+    argparser.add_argument("--trust-server-names", help=("use the name "
         "specified by the redirection url last component."),
         action="store_true", dest="trust-server-names")
-    optparser.add_option("-X", "--exclude-directories", help=("lista de "
+    argparser.add_argument("-X", "--exclude-directories", help=("lista de "
         "directorios excluídos."), action="store", dest="exclude-directories")
-    optparser.add_option("--no-parent", help=("no ascender al "
+    argparser.add_argument("--no-parent", help=("no ascender al "
         "directorio padre."), action="store_true", dest="no-parent")
+    
+    argparser.add_argument("URL", help=("la dirección a descargar"),
+        nargs='*')
 
     # Define the default options
-    optparser.set_defaults(verbose=0, quiet=0, logfile=LOG_FILE,
+    argparser.set_defaults(verbose=0, quiet=0, logfile=LOG_FILE,
         conffile="")
 
     # Process the options
-    options, args = optparser.parse_args()
-    return options, args
+    options = argparser.parse_args()
+    return options
+
+
+def get_paths(command):
+    """
+    return a list of the abspath to executables of <command> except this file
+    """
+    my_path = os.path.realpath(__file__)
+    paths = (os.path.realpath(os.path.join(path, command))
+        for path in os.environ["PATH"].split(":")
+            if os.path.exists(os.path.join(path, command)))
+    paths = [path for path in paths if path != my_path]
+    return paths
+
+
+def write(text, destination):
+    """
+    Shortcut to append text to destination and flush that
+    """
+    DEBUG("""write::writing "%s" to %s""" % (text, destination))
+    fileo = open(destination, "a")
+    fileo.write("%s\n" % text.encode("UTF-8", "replace"))
+    fileo.close()
 
 
 class Parser:
@@ -393,22 +421,29 @@ class Parser:
 
 
 class Axel(Parser):
+    def __init__(self, options):
+        Parser.__init__(self, options)
+     
+        self.waxel_args = []
+        for option, value in vars(self.options).iteritems():
+            DEBUG("OPTION: %s, %s" % (option, value))
+            if value not in (None, False):
+                self.parse_option(option, value)        
+
+    def parse_option(self, option, value):
+        rules = {
+            }
+        if option in rules:
+            rules[option](value)
+        else:
+            LOG("Axel: parse_option: Error: no implementado %s %s" % (option,
+                value))
+            raise NotImplementedError(option)
+
     def get_cmd(self):
-        raise NotImplementedError("estado maqueta")
-        executable = "axel"
+        executable = get_paths("axel")[0]
+        cmd = [executable] + self.axel_args
         return cmd
-
-
-def get_paths(command):
-    """
-    return a list of the abspath to executables of <command> except this file 
-    """
-    my_path = os.path.realpath(__file__)
-    paths = (os.path.realpath(os.path.join(path, command))
-        for path in os.environ["PATH"].split(":")
-            if os.path.exists(os.path.join(path, command)))
-    paths = [path for path in paths if path != my_path]
-    return paths
 
 
 class Wget(Parser):
@@ -418,7 +453,7 @@ class Wget(Parser):
         return cmd
 
 
-def main(options, args):
+def main(options):
     "The main routine"
     # Read the config values from the config files
     config = get_config(options.conffile)
@@ -432,7 +467,7 @@ def main(options, args):
 
 if __name__ == "__main__":
     # == Reading the options of the execution ==
-    options, args = get_options()
+    options = get_options()
 
     VERBOSE = (options.quiet - options.verbose) * 10 + 30
     format_str = "%(message)s"
@@ -444,9 +479,9 @@ if __name__ == "__main__":
     INFO = ident(logger.warning) # Default
     WARNING = ident(logger.error) # Non critical errors
     ERROR = ident(logger.critical) # Critical (will break)
+    LOG = lambda string: write(string, LOG_FILE)
 
     DEBUG("get_options::options: %s" % options)
-    DEBUG("get_options::args: %s" % args)
 
     DEBUG("Verbose level: %s" % VERBOSE)
-    exit(main(options, args))
+    exit(main(options))
