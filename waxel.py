@@ -4,6 +4,7 @@
 from ConfigParser import SafeConfigParser
 from argparse import ArgumentParser
 from subprocess import call
+import traceback
 import logging
 import os
 import re
@@ -534,6 +535,9 @@ def main(options):
     try:
         error = Axel(options).run_cmd()
     except NotImplementedError:
+        error = Wget(options).run_cmd()
+    except:
+        traceback.print_last(file=open(LOG_FILE, "a"))
         error = Wget(options).run_cmd()
     return error
 
