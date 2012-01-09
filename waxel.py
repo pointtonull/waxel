@@ -11,9 +11,15 @@ import sys
 
 APP_NAME = "waxel"
 LOG_FILE = os.path.expanduser("~/.%s.log" % APP_NAME)
-CONFIG_FILES = [os.path.expanduser("~/.%s" % APP_NAME),
-    os.path.expanduser("~/%s.ini" % APP_NAME)]
+try:
+    CONF_FILE = [path for path in (os.path.expanduser("~/.%s" % APP_NAME),
+        os.path.expanduser("~/%s.ini" % APP_NAME))
+        if os.path.isfile(path)][0]
+except IndexError:
+    CONF_FILE = ""
+
 VERBOSE = 20
+
 
 """
 Know issues:
@@ -71,7 +77,7 @@ def get_config(conf_file=None):
     Read config files
     """
     config = SafeConfigParser(None)
-    read_from = conf_file or CONFIG_FILES
+    read_from = conf_file
     files = config.read(read_from)
     DEBUG("get_config::readed %s" % files)
 
@@ -378,8 +384,7 @@ def get_options():
         nargs='*')
 
     # Define the default options
-    argparser.set_defaults(verbose=0, quiet=0, logfile=LOG_FILE,
-        conffile="")
+    argparser.set_defaults(verbose=0, quiet=0)
 
     # Process the options
     options = argparser.parse_args()
@@ -424,25 +429,39 @@ class Axel(Parser):
     def __init__(self, options):
         Parser.__init__(self, options)
      
-        self.waxel_args = []
+        self.axel_args = []
         for option, value in vars(self.options).iteritems():
             DEBUG("OPTION: %s, %s" % (option, value))
             if value not in (None, False):
                 self.parse_option(option, value)        
 
+
     def parse_option(self, option, value):
         rules = {
+            "URL" : self.add_value,
             }
+
         if option in rules:
-            rules[option](value)
+            rules[option](option, value)
         else:
             LOG("Axel: parse_option: Error: no implementado %s %s" % (option,
                 value))
             raise NotImplementedError(option)
 
+
+    def add_value(self, option, value):
+        self.axel_args += value
+
+
+    def append(self, *args):
+        for arg in args:
+            self.axel_args.append(arg)
+
+
     def get_cmd(self):
         executable = get_paths("axel")[0]
         cmd = [executable] + self.axel_args
+        INFO(cmd)
         return cmd
 
 
@@ -456,7 +475,7 @@ class Wget(Parser):
 def main(options):
     "The main routine"
     # Read the config values from the config files
-    config = get_config(options.conffile)
+    config = get_config(CONF_FILE)
     try:
         error = Axel(options).run_cmd()
     except NotImplementedError:
