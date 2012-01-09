@@ -415,13 +415,15 @@ def write(text, destination):
 
 class Parser:
     def __init__(self, options):
-        self.options = options
+        self.options = vars(options)
 
     def get_cmd(self):
         return [""]
 
     def run_cmd(self):
-        error = call(self.get_cmd())
+        cmd = self.get_cmd()
+        LOG("INFO: runcmd: %s" % cmd)
+        error = call(cmd)
         return error
 
 
@@ -429,8 +431,11 @@ class Axel(Parser):
     def __init__(self, options):
         Parser.__init__(self, options)
      
+        self.pre_actions = []
+        self.post_actions = []
+        self.axel_opts = []
         self.axel_args = []
-        for option, value in vars(self.options).iteritems():
+        for option, value in self.options.iteritems():
             DEBUG("OPTION: %s, %s" % (option, value))
             if value not in (None, False):
                 self.parse_option(option, value)        
@@ -438,8 +443,11 @@ class Axel(Parser):
 
     def parse_option(self, option, value):
         rules = {
-            "URL" : self.add_value,
-            "header" : self.add_headers,
+            "URL" : self.args_add_value,
+            "header" : self.opts_add_headers,
+            "output-document" : self.opts_set_output,
+            "user-agent" : self.opts_set_user_agent,
+            "continue" : self.opts_set_continue,
             }
 
         if option in rules:
@@ -450,22 +458,48 @@ class Axel(Parser):
             raise NotImplementedError(option)
 
 
-    def add_value(self, option, value):
+    def opts_set_continue(self, option, value):
+        out_file = self.options["output-document"]
+        if not out_file:
+            urls = self.options["URL"]
+            if len(urls) == 1:
+                url = urls[0]
+            else:
+                raise NotImplementedError(option + " when I cant be sure where"
+                    "the output will be put")
+            out_file = os.path.basename(url)
+        state_file = out_file + "st"
+        exists = os.path.exists
+
+        if exists(out_file) and not exists(state_file):
+            raise NotImplementedError(option + " when another program started"
+                " the downlad")
+
+
+    def opts_set_user_agent(self, option, value):
+        self.opts_append("--user-agent=%s" % value)
+
+
+    def opts_set_output(self, option, value):
+        self.opts_append("--output=%s" % value)
+
+
+    def args_add_value(self, option, value):
         self.axel_args += value
 
 
-    def append(self, *args):
+    def opts_append(self, *args):
         for arg in args:
             self.axel_args.append(arg)
 
-    def add_headers(self, option, value):
-        args = ['--header=%s' % header for header in value]
-        self.axel_args += args
+    def opts_add_headers(self, option, value):
+        opts = ['--header=%s' % header for header in value]
+        self.axel_opts += opts
 
 
     def get_cmd(self):
         executable = get_paths("axel")[0]
-        cmd = [executable] + self.axel_args
+        cmd = [executable] + self.axel_opts + self.axel_args
         DEBUG(cmd)
         return cmd
 
