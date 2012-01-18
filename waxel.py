@@ -4,10 +4,8 @@
 from ConfigParser import SafeConfigParser
 from argparse import ArgumentParser
 from subprocess import call
-import traceback
 import logging
 import os
-import re
 import sys
 
 APP_NAME = "waxel"
@@ -414,78 +412,117 @@ def write(text, destination):
     fileo.close()
 
 
+
 class Parser:
     def __init__(self, options):
         self.options = vars(options)
+        self.args = self.options["URL"]
+        del(self.options["URL"])
+        self._execute = True
+
 
     def get_cmd(self):
         return [""]
 
+
     def run_cmd(self):
-        cmd = self.get_cmd()
-        LOG("INFO: runcmd: %s" % cmd)
-        error = call(cmd)
-        return error
+        if self._execute:
+            cmd = self.get_cmd()
+            LOG("INFO: runcmd: %s\n" % cmd)
+            error = call(cmd)
+            return error
+
 
 
 class Axel(Parser):
     def __init__(self, options):
         Parser.__init__(self, options)
-        self.clean_state_file()
+        self.clean_state_files()
 
         self.pre_actions = []
         self.post_actions = []
         self.axel_opts = []
         self.axel_args = []
-        for option, value in self.options.iteritems():
-            DEBUG("OPTION: %s, %s" % (option, value))
-            if value not in (None, False):
-                self.parse_option(option, value)        
+        self.parse_options()
 
 
-    def parse_option(self, option, value):
-        rules = {
-            "URL" : self.args_add_value,
-            "header" : self.opts_add_headers,
-            "output-document" : self.opts_set_output,
-            "user-agent" : self.opts_set_user_agent,
-            "continue" : self.opts_set_continue,
-            }
+    def parse_options(self):
 
-        if option in rules:
-            rules[option](option, value)
-        else:
-            LOG("ERROR: parse_option: Error: no implementado %s %s" % (option,
-                value))
-            raise NotImplementedError(option)
+        rules = [
+            ("directory-prefix", self.opts_directory_prefix),
+            ("URL", self.args_add_value),
+            ("force-directories", self.opts_force_directories),
+            ("output-document", self.opts_set_output),
+            ("header", self.opts_add_headers),
+            ("user-agent", self.opts_set_user_agent),
+            ("continue", self.opts_set_continue),
+        ]
+
+        options = self.options.copy()
+
+        for name, wrapper in rules:
+            if name in options:
+                if options[name] not in (None, False):
+                    DEBUG("OPTION: %s, %s" % (name, options[name]))
+                    wrapper(name, options[name])
+                    options[name] = None
+
+        notimplementeds = [(option, value)
+            for option, value in options.iteritems()
+                if value]
+        
+        if notimplementeds:
+            for option, value in notimplementeds:
+                LOG("ERROR: parse_option: Error: no implementado %s %s"
+                    % (option, value))
+            raise NotImplementedError()
 
 
-    def get_output_file(self):
+    def get_output_files(self):
         out_file = self.options["output-document"]
-        if not out_file:
-            urls = self.options["URL"]
-            if len(urls) == 1:
-                url = urls[0]
-            else:
-                return None
-            out_file = os.path.basename(url)
-        return out_file
-
-
-    def get_state_file(self):
-        out_file = self.get_output_file()
         if out_file:
-            return out_file + ".st"
+            out_files = [os.path.split(out_file)]
         else:
-            return None
+            urls = self.args
+            out_files = [os.path.split(url.split("//")[-1])
+                for url in urls]
+        return out_files
 
 
-    def clean_state_file(self):
-        out_file = self.get_output_file()
-        if out_file:
-            state_file = self.get_state_file()
+    def clean_state_files(self):
+        out_files = self.get_output_files()
+        for out_file in out_files:
+            state_file = os.path.join(out_file[0], out_file[1] + ".st")
             if os.path.exists(state_file) and not os.path.exists(out_file):
                 os.remove(state_file)
+
+
+    def opts_force_directories(self, option, value):
+        paths = [path for path, filename in self.get_output_files()]
+        if len(paths) > 1:
+            errors = []
+            for this_url in self.args:
+                cmd = sys.argv[:]
+                others_urls = {url for url in self.args
+                    if url != this_url}
+                for other_url in others_urls:
+                    while other_url in cmd:
+                        cmd.remove(other_url)
+                LOG("INFO: runcmd: %s\n" % cmd)
+                errors.append(call(cmd))
+            self._execute = False
+            return out_files
+        else:
+            path = paths[0]
+            if not os.path.exists(path):
+                os.makedirs(path)
+            os.chdir(path)
+
+
+    def opts_directory_prefix(self, option, value):
+        if not os.path.exists(value):
+            os.makedirs(value)
+        os.chdir(value)
 
 
     def opts_set_continue(self, option, value):
@@ -505,16 +542,25 @@ class Axel(Parser):
 
 
     def opts_set_output(self, option, value):
+        path, filename = os.path.split(value)
+        if not os.path.exists(path):
+            os.makedirs(path)
         self.opts_append("--output=%s" % value)
 
 
     def args_add_value(self, option, value):
-        self.axel_args += value
+        self.args_append(*value)
 
 
-    def opts_append(self, *args):
+    def opts_append(self, *opts):
+        for opt in opts:
+            self.axel_opts.append(opt)
+
+
+    def args_append(self, *args):
         for arg in args:
             self.axel_args.append(arg)
+
 
     def opts_add_headers(self, option, value):
         opts = ['--header=%s' % header for header in value]
@@ -523,9 +569,10 @@ class Axel(Parser):
 
     def get_cmd(self):
         executable = get_paths("axel")[0]
-        cmd = [executable] + self.axel_opts + self.axel_args
+        cmd = [executable] + self.axel_opts + self.args
         DEBUG(cmd)
         return cmd
+
 
 
 class Wget(Parser):
