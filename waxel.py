@@ -1,6 +1,36 @@
 #!/usr/bin/env python
 #-*- coding: UTF-8 -*-
 
+"""
+Description
+===========
+
+Waxel is a simple handler to wget that will try to use wget axel whenever
+possible. La idea principal es usar las carácteristicas avanzadas de axel en los
+programas que se apoyan en el muy popular wget de modo totalmente transparente
+para el usuario.
+
+Documentation
+=============
+
+You can find all the project documentation in the wiki
+http://wiki.github.com/pointtonull/waxel/.
+
+Colaborate
+==========
+
+You are free to clone this project from http://github.com/pointtonull/waxel.git
+or to report issues/whises on http://github.com/pointtonull/waxel/issues 
+
+Know issues
+===========
+
+* NEVER will implement boggus parts from wget interface like:
+    * two chars shorts options: -nc, -nv, -nb, -nH, -np
+
+
+"""
+
 from ConfigParser import SafeConfigParser
 from argparse import ArgumentParser
 from subprocess import call
@@ -18,13 +48,6 @@ except IndexError:
     CONF_FILE = ""
 
 VERBOSE = 20
-
-
-"""
-Know issues:
-    + NEVER will implement boggus parts from wget interface like:
-        - two chars shorts options: -nc, -nv, -nb, -nH, -np
-"""
 
 
 def get_depth():
@@ -66,6 +89,9 @@ def ident(func, identation="  "):
     Decorates func to add identation prior arg[0]
     """
     def decorated(message, *args, **kwargs):
+        """
+        the decorated function
+        """
         newmessage = "%s%s" % (identation * (get_depth() - 1), message)
         return func(newmessage, *args, **kwargs)
     return decorated
@@ -90,7 +116,7 @@ def get_options():
     # Instance the parser and define the usage message
     argparser = ArgumentParser()
 
-    "Inicio:"
+#    "Inicio:"
     argparser.add_argument( "-V", "--version", help=("muestra la versión de "
         "Wget y sale."), action="store_true", dest="version ")
     argparser.add_argument("-b", "--background", help=("irse a segundo plano"
@@ -98,7 +124,7 @@ def get_options():
     argparser.add_argument("-e", "--execute", help=("ejecuta una orden"
         "estilo `.wgetrc'."), action="store", dest="execute")
 
-    "Ficheros de registro y de entrada:"
+#    "Ficheros de registro y de entrada:"
     argparser.add_argument("-o", "--output-file", help=("registrar mensajes"
         "en FICHERO."), action="store", dest="output-file")
     argparser.add_argument("-a", "--append-output", help=("anexar mensajes a"
@@ -122,7 +148,7 @@ def get_options():
     argparser.add_argument("--config" , help=("Specify config file to use."),
         action="store_true", dest="config")
 
-    "Descarga:"
+#    "Descarga:"
     argparser.add_argument("-t", "--tries", help=("define número de intentos a "
         "NÚMERO (0 es sin limite)."), action="store", type=int, dest="tries")
     argparser.add_argument("--retry-connrefused", help=("reintente incluso si"
@@ -207,7 +233,7 @@ def get_options():
     argparser.add_argument("--unlink", help=("remove file before clobber."),
         action="store_true", dest="unlink")
 
-    "Directorios:"
+#    "Directorios:"
     argparser.add_argument("--no-directories", help=("no crear "
         "directorios."), action="store_true", dest="no-directories")
     argparser.add_argument("-x", "--force-directories", help=("forzar la "
@@ -225,7 +251,7 @@ def get_options():
         "componentes de directorio remoto."), action="store", type=int,
         dest="cut-dirs")
 
-    "Opciones HTTP:"
+#    "Opciones HTTP:"
     argparser.add_argument("--http-user", help=("poner el usuario http a "
         "USUARIO."), action="store", dest="http-user")
     argparser.add_argument("--http-password", help=("poner la contraseña "
@@ -281,7 +307,7 @@ def get_options():
         "de autenticicación básica HTTP sin antes esperar al desafío del "
         "servidor."), action="store_true", dest="auth-no-challenge")
 
-    "Opciones HTTPS (SSL/TLS):"
+#    "Opciones HTTPS (SSL/TLS):"
     argparser.add_argument("--secure-protocol", help=("elegir protocolo "
         "seguro entre auto, SSLv2, SSLv3, y TLSv1."), action="store",
         dest="secure-protocol")
@@ -308,7 +334,7 @@ def get_options():
     argparser.add_argument("--egd-file", help=("fichero que denomina el "
         "conector EGD con datos aleatorios."), action="store", dest="egd-file")
 
-    "Opciones FTP:"
+#    "Opciones FTP:"
     argparser.add_argument("--ftp-user", help=("poner USUARIO como el "
         "usuario de ftp."), action="store", dest="ftp-user")
     argparser.add_argument("--ftp-password", help=("poner PASS como "
@@ -325,7 +351,7 @@ def get_options():
         "bajar los ficheros enlazados (no los directorios)."),
         action="store_true", dest="retr-symlinks")
 
-    "Bajada recursiva:"
+#    "Bajada recursiva:"
     argparser.add_argument("-r", "--recursive", help=("especificar descarga "
         "recursiva."), action="store_true", dest="recursive")
     argparser.add_argument("-l", "--level", help=("máxima profundidad de "
@@ -348,7 +374,7 @@ def get_options():
         "stricto (SGML) de los comentarios en HTML."), action="store_true",
         dest="strict-comments")
 
-    "Aceptar/rechazar recursivamente:"
+#    "Aceptar/rechazar recursivamente:"
     argparser.add_argument("-A", "--accept", help=("lista separada por comas de"
         " extensiones aceptadas."), action="store", dest="accept")
     argparser.add_argument("-R", "--reject", help=("lista separada por comas de"
@@ -414,6 +440,9 @@ def write(text, destination):
 
 
 class Parser:
+    """
+    Class to implement common features for wrapping all the back-ends
+    """
     def __init__(self, options):
         try:
             self.options = vars(options)
@@ -508,9 +537,10 @@ class Axel(Parser):
                 options = self.options.copy()
                 options["URL"] = [url]
                 LOG("INFO: runcmd: %s\n" % options)
+                path = os.path.abspath(".")
                 errors.append(main(options))
+                os.chdir(path)
             self._execute = False
-            return out_files
         else:
             path = paths[0]
             if not os.path.exists(path):
@@ -596,9 +626,9 @@ def main(options):
 
 if __name__ == "__main__":
     # == Reading the options of the execution ==
-    options = get_options()
+    OPTIONS = get_options()
 
-    VERBOSE = (options.quiet - options.verbose) * 10 + 30
+    VERBOSE = (OPTIONS.quiet - OPTIONS.verbose) * 10 + 30
     format_str = "%(message)s"
     logging.basicConfig(format=format_str, level=VERBOSE)
     logger = logging.getLogger()
@@ -610,7 +640,7 @@ if __name__ == "__main__":
     ERROR = ident(logger.critical) # Critical (will break)
     LOG = lambda string: write(string, LOG_FILE)
 
-    DEBUG("get_options::options: %s" % options)
+    DEBUG("get_options::options: %s" % OPTIONS)
 
     DEBUG("Verbose level: %s" % VERBOSE)
-    exit(main(options))
+    exit(main(OPTIONS))
