@@ -4,13 +4,10 @@
 Description
 ===========
 
-This application will allow you to process the information distributed in a feed (atom / rss / any)
-
-Key Features:
-    * specify the command to which the result will be routed
-    * edit content using regular expressions
-    * modify the content using embedded python
-    * filter entries using embedded python / regular expressions
+Waxel is a simple handler to wget that will try to use wget axel whenever
+possible. La idea principal es usar las carácteristicas avanzadas de axel en los
+programas que se apoyan en el muy popular wget de modo totalmente transparente
+para el usuario.
 
 Documentation
 =============

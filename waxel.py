@@ -415,7 +415,11 @@ def write(text, destination):
 
 class Parser:
     def __init__(self, options):
-        self.options = vars(options)
+        try:
+            self.options = vars(options)
+        except TypeError:
+            self.options = options
+
         self.args = self.options["URL"]
         del(self.options["URL"])
         self._execute = True
@@ -450,7 +454,6 @@ class Axel(Parser):
 
         rules = [
             ("directory-prefix", self.opts_directory_prefix),
-            ("URL", self.args_add_value),
             ("force-directories", self.opts_force_directories),
             ("output-document", self.opts_set_output),
             ("header", self.opts_add_headers),
@@ -501,15 +504,11 @@ class Axel(Parser):
         paths = [path for path, filename in self.get_output_files()]
         if len(paths) > 1:
             errors = []
-            for this_url in self.args:
-                cmd = sys.argv[:]
-                others_urls = {url for url in self.args
-                    if url != this_url}
-                for other_url in others_urls:
-                    while other_url in cmd:
-                        cmd.remove(other_url)
-                LOG("INFO: runcmd: %s\n" % cmd)
-                errors.append(call(cmd))
+            for url in self.args:
+                options = self.options.copy()
+                options["URL"] = [url]
+                LOG("INFO: runcmd: %s\n" % options)
+                errors.append(main(options))
             self._execute = False
             return out_files
         else:
@@ -523,6 +522,7 @@ class Axel(Parser):
         if not os.path.exists(value):
             os.makedirs(value)
         os.chdir(value)
+        self.options[option] = None
 
 
     def opts_set_continue(self, option, value):
