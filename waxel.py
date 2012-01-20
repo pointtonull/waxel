@@ -41,9 +41,9 @@ import sys
 APP_NAME = "waxel"
 LOG_FILE = os.path.expanduser("~/.%s.log" % APP_NAME)
 try:
-    CONF_FILE = [path for path in (os.path.expanduser("~/.%s" % APP_NAME),
+    CONF_FILE = [PATH for PATH in (os.path.expanduser("~/.%s" % APP_NAME),
         os.path.expanduser("~/%s.ini" % APP_NAME))
-        if os.path.isfile(path)][0]
+        if os.path.isfile(PATH)][0]
 except IndexError:
     CONF_FILE = ""
 
@@ -440,10 +440,10 @@ def write(text, destination):
 
 
 class Parser:
-    """
-    Class to implement common features for wrapping all the back-ends
-    """
     def __init__(self, options):
+        """
+        Class to implement common features for wrapping all the back-ends
+        """
         try:
             self.options = vars(options)
         except TypeError:
@@ -455,10 +455,16 @@ class Parser:
 
 
     def get_cmd(self):
+        """
+        create the list of executable. options and arguments to be executeds
+        """
         return [""]
 
 
     def run_cmd(self):
+        """
+        makes the efective call
+        """
         if self._execute:
             cmd = self.get_cmd()
             LOG("INFO: runcmd: %s\n" % cmd)
@@ -536,7 +542,9 @@ class Axel(Parser):
             for url in self.args:
                 options = self.options.copy()
                 options["URL"] = [url]
-                LOG("INFO: runcmd: %s\n" % options)
+                LOG("INFO: runcmd: %s\n" % {key: value
+                    for key, value in options.iteritems()
+                        if value not in (None, False)})
                 path = os.path.abspath(".")
                 errors.append(main(options))
                 os.chdir(path)
@@ -556,15 +564,17 @@ class Axel(Parser):
 
 
     def opts_set_continue(self, option, value):
-        out_file = self.get_out_file()
-        if not out_file:
+        out_files = self.get_output_files()
+        if not out_files:
             raise NotImplementedError(option + " when I cant be sure where"
                 "the output will be put")
-        state_file = self.get_state_file()
+        out_state_files = [(out[0] + out[1], out[0] + out[1] + ".st")
+            for out in out_files]
 
-        if os.path.exists(out_file) and not os.path.exists(state_file):
-            raise NotImplementedError(option + " when another program started"
-                " the downlad")
+        for output, state in out_state_files:
+            if os.path.exists(output) and not os.path.exists(state):
+                raise NotImplementedError(option + " when another program "
+                "started the downlad")
 
 
     def opts_set_user_agent(self, option, value):
